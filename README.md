@@ -1,5 +1,8 @@
 ﻿# Amusing
 
+[![Amusing NuGet version](https://img.shields.io/nuget/v/Amusing.svg)](https://www.nuget.org/packages/Amusing/)
+[![License](https://img.shields.io/badge/license-MIT-blue)](https://opensource.org/licenses/MIT)
+
 A command-line tool that shows what namespaces you am-using.
 
 Intended to help make the best use of the [implicit usings](https://aka.ms/csharp-implicit-usings) features of C# 10 / .NET 6.
