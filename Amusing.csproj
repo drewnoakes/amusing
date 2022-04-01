@@ -7,7 +7,7 @@
     <Nullable>enable</Nullable>
     <LangVersion>preview</LangVersion>
 
-    <Version>1.0</Version>
+    <Version>0.1</Version>
     <Authors>Drew Noakes</Authors>
     <Copyright>Drew Noakes</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
