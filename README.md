@@ -1,5 +1,6 @@
 ﻿# Amusing
 
+![Amusing build status](https://github.com/drewnoakes/amusing/actions/workflows/dotnet.yml/badge.svg)
 [![Amusing NuGet version](https://img.shields.io/nuget/v/Amusing.svg)](https://www.nuget.org/packages/Amusing/)
 [![License](https://img.shields.io/badge/license-MIT-blue)](https://opensource.org/licenses/MIT)
 
