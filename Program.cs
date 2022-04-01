@@ -58,15 +58,14 @@ var collector = new UsingCollector();
 
 await status.StartAsync(
     "Walking syntax trees",
-    async ctx =>
-    {
-        foreach (var document in EnumerateDocuments(workspace))
+    ctx => Parallel.ForEachAsync(
+        EnumerateDocuments(workspace),
+        async (document, _) =>
         {
             SyntaxNode? root = await document.GetSyntaxRootAsync();
 
             collector.Visit(root);
-        }
-    });
+        }));
 
 if (hasWarnings)
 {
@@ -125,8 +124,11 @@ class UsingCollector : CSharpSyntaxWalker
     {
         string name = node.Name.ToString();
 
-        Usings.TryGetValue(name, out int count);
+        lock (Usings)
+        {
+            Usings.TryGetValue(name, out int count);
 
-        Usings[name] = count + 1;
+            Usings[name] = count + 1;
+        }
     }
 }
