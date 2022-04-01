@@ -117,12 +117,8 @@ class UsingCollector : CSharpSyntaxWalker
     {
         string name = node.Name.ToString();
 
-        if (!Usings.TryGetValue(name, out int count))
-        {
-            count = 0;
-        }
+        Usings.TryGetValue(name, out int count);
 
-        count++;
-        Usings[name] = count;
+        Usings[name] = count + 1;
     }
 }
