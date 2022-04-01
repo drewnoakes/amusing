@@ -15,6 +15,7 @@
     <PackageProjectUrl>https://github.com/drewnoakes/amusing</PackageProjectUrl>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/drewnoakes/amusing.git</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
 
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>amusing</ToolCommandName>
@@ -32,6 +33,13 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.1.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="4.1.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
