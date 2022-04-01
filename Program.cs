@@ -60,26 +60,11 @@ await status.StartAsync(
     "Walking syntax trees",
     async ctx =>
     {
-        foreach (var project in workspace.CurrentSolution.Projects)
+        foreach (var document in EnumerateDocuments(workspace))
         {
-            if (project.Language != "C#")
-            {
-                AnsiConsole.MarkupLineInterpolated($"[yellow]Skipping non-C# project: {project.FilePath}[/]");
-                hasWarnings = true;
-                continue;
-            }
+            SyntaxNode? root = await document.GetSyntaxRootAsync();
 
-            foreach (var document in project.Documents)
-            {
-                if (document.FilePath?.EndsWith("GlobalUsings.g.cs") == true)
-                {
-                    continue;
-                }
-
-                SyntaxNode? root = await document.GetSyntaxRootAsync();
-
-                collector.Visit(root);
-            }
+            collector.Visit(root);
         }
     });
 
@@ -94,6 +79,29 @@ foreach ((string name, int count) in collector.Usings.OrderByDescending(pair => 
 }
 
 return 0;
+
+IEnumerable<Document> EnumerateDocuments(MSBuildWorkspace workspace)
+{
+    foreach (var project in workspace.CurrentSolution.Projects)
+    {
+        if (project.Language != "C#")
+        {
+            AnsiConsole.MarkupLineInterpolated($"[yellow]Skipping non-C# project: {project.FilePath}[/]");
+            hasWarnings = true;
+            continue;
+        }
+
+        foreach (Document document in project.Documents)
+        {
+            if (document.FilePath?.EndsWith("GlobalUsings.g.cs") == true)
+            {
+                continue;
+            }
+
+            yield return document;
+        }
+    }
+}
 
 static void PrintUsage(IAnsiConsole console)
 {
