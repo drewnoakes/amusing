@@ -21,6 +21,8 @@
     <PackageOutputPath>./nupkg</PackageOutputPath>
     <Description>Outputs the number of times each namespace is imported within one or more projects.</Description>
 
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
   <ItemGroup>
