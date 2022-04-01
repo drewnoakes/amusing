@@ -105,15 +105,14 @@ IEnumerable<Document> EnumerateDocuments(MSBuildWorkspace workspace)
 static void PrintUsage(IAnsiConsole console)
 {
     console.MarkupLine(
-        """
-        Usage:
+        @"Usage:
 
-            [green]amusing[/] [blue]<file>[/]
+    [green]amusing[/] [blue]<file>[/]
 
-        Where:
+Where:
 
-            [blue]<file>[/] Path to a .sln or MSBuild project file (such as .csproj)
-        """);
+    [blue]<file>[/] Path to a .sln or MSBuild project file (such as .csproj)
+");
 }
 
 class UsingCollector : CSharpSyntaxWalker
