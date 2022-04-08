@@ -1,4 +1,6 @@
-﻿using Microsoft.Build.Locator;
+﻿using System.CommandLine;
+using System.CommandLine.NamingConventionBinder;
+using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp;
@@ -7,77 +9,90 @@ using Spectre.Console;
 
 var stderr = AnsiConsole.Create(new AnsiConsoleSettings { Out = new AnsiConsoleOutput(Console.Error) });
 
-string? filePath = args switch
+var hasWarnings = false;
+
+var countOption = new Option<int?>("--count", "The maximum number of results to return (optional)");
+countOption.AddAlias("-c");
+
+var noWarnOption = new Option("--no-warn", "Suppress warnings");
+noWarnOption.AddAlias("-q");
+
+var rootCommand = new RootCommand
 {
-    [string s] => s,
-    _ => null
+    new Argument<string>("file", "Path to a .sln or MSBuild project file (such as .csproj)"),
+    countOption,
+    noWarnOption
 };
 
-if (filePath is null)
+rootCommand.Handler = CommandHandler.Create((string file, int? count, bool noWarn) => RunAsync(file, count, noWarn));
+
+return await rootCommand.InvokeAsync(args);
+
+async Task<int> RunAsync(string filePath, int? maxCount, bool noWarn)
 {
-    PrintUsage(stderr);
-    return 1;
-}
+    var instance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(i => i.Version).FirstOrDefault();
 
-var instance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(i => i.Version).FirstOrDefault();
-
-if (instance is null)
-{
-    stderr.WriteLine("[red]Unable to locate MSBuild. Cannot continue.[/]");
-    return 1;
-}
-
-MSBuildLocator.RegisterInstance(instance);
-
-using var workspace = MSBuildWorkspace.Create();
-
-var errors = new List<string>();
-
-workspace.WorkspaceFailed += (o, e) => errors.Add(e.Diagnostic.Message);
-
-var status = AnsiConsole.Status().Spinner(Spinner.Known.Default);
-
-await status.StartAsync(
-    $"Loading {Path.GetFileName(filePath)}",
-    ctx =>
+    if (instance is null)
     {
-        return filePath.EndsWith(".sln")
-            ? workspace.OpenSolutionAsync(filePath)
-            : workspace.OpenProjectAsync(filePath);
-    });
+        stderr.WriteLine("[red]Unable to locate MSBuild. Cannot continue.[/]");
+        return 1;
+    }
 
-bool hasWarnings = false;
+    MSBuildLocator.RegisterInstance(instance);
 
-foreach (var error in errors)
-{
-    stderr.MarkupLineInterpolated($"[purple]{error}[/]");
-    hasWarnings = true;
-}
+    using var workspace = MSBuildWorkspace.Create();
 
-var collector = new UsingCollector();
+    var errors = new List<string>();
 
-await status.StartAsync(
-    "Walking syntax trees",
-    ctx => Parallel.ForEachAsync(
-        EnumerateDocuments(workspace),
-        async (document, _) =>
+    if (!noWarn)
+        workspace.WorkspaceFailed += (o, e) => errors.Add(e.Diagnostic.Message);
+
+    var status = AnsiConsole.Status().Spinner(Spinner.Known.Default);
+
+    await status.StartAsync(
+        $"Loading {Path.GetFileName(filePath)}",
+        ctx =>
         {
-            SyntaxNode? root = await document.GetSyntaxRootAsync();
+            return filePath.EndsWith(".sln")
+                ? workspace.OpenSolutionAsync(filePath)
+                : workspace.OpenProjectAsync(filePath);
+        });
 
-            collector.Visit(root);
-        }));
+    if (!noWarn)
+    {
+        foreach (var error in errors)
+        {
+            stderr.MarkupLineInterpolated($"[purple]{error}[/]");
+            hasWarnings = true;
+        }
+    }
 
-if (hasWarnings)
-{
-    AnsiConsole.WriteLine();
+    var collector = new UsingCollector();
+
+    await status.StartAsync(
+        "Walking syntax trees",
+        ctx => Parallel.ForEachAsync(
+            EnumerateDocuments(workspace),
+            async (document, token) =>
+            {
+                SyntaxNode? root = await document.GetSyntaxRootAsync(token);
+
+                collector.Visit(root);
+            }));
+
+    if (hasWarnings)
+        AnsiConsole.WriteLine();
+
+    IEnumerable<KeyValuePair<string, int>>? results = collector.Usings.OrderByDescending(pair => pair.Value).ThenBy(pair => pair.Key);
+
+    if (maxCount is not null)
+        results = results.Take(maxCount.Value);
+
+    foreach ((string name, int count) in results)
+        AnsiConsole.MarkupLineInterpolated($"[blue]{count,-6}[/] {name}");
+
+    return 0;
 }
-
-foreach ((string name, int count) in collector.Usings.OrderByDescending(pair => pair.Value).ThenBy(pair => pair.Key))
-{
-    AnsiConsole.MarkupLineInterpolated($"[blue]{count,-6}[/] {name}");
-}
-
-return 0;
 
 IEnumerable<Document> EnumerateDocuments(MSBuildWorkspace workspace)
 {
@@ -100,19 +115,6 @@ IEnumerable<Document> EnumerateDocuments(MSBuildWorkspace workspace)
             yield return document;
         }
     }
-}
-
-static void PrintUsage(IAnsiConsole console)
-{
-    console.MarkupLine(
-        @"Usage:
-
-    [green]amusing[/] [blue]<file>[/]
-
-Where:
-
-    [blue]<file>[/] Path to a .sln or MSBuild project file (such as .csproj)
-");
 }
 
 class UsingCollector : CSharpSyntaxWalker
