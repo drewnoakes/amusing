@@ -25,6 +25,10 @@ Assuming C# 10 or later and .NET SDK 6 or later, we can make those explicit by p
 ```xml
 <Project>
 
+  <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
   <ItemGroup>
     <Using Include="Xunit" />
     <Using Include="Moq" />
