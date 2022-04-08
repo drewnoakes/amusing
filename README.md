@@ -48,3 +48,5 @@ dotnet tool install -g amusing
 ## Thanks
 
 - [Spectre.Console](https://github.com/spectreconsole/spectre.console) for making the console output more fun.
+- [System.CommandLine](https://github.com/dotnet/command-line-api) for making parsing arguments easy.
+
