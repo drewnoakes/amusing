@@ -35,24 +35,24 @@ async Task<int> RunAsync(string filePath, int? maxCount, bool noWarn)
 {
     if (!PathValidator.Exists(filePath))
     {
-        stderr.WriteLine("[red]File or folder do not exist. Cannot continue.[/]");
+        stderr.MarkupLine("[red]File or folder do not exist. Cannot continue.[/]");
         return 1;
     }
     if (!PathValidator.IsValid(filePath))
     {
-        stderr.WriteLine("[red]File or folder not valid. Cannot continue.[/]");
+        stderr.MarkupLine("[red]File or folder not valid. Cannot continue.[/]");
         return 2;
     }
     if (!WorkLocator.TryLocate(filePath, out var workPath))
     {
-        stderr.WriteLine("[red]Unable to locate any .sln or MSBuild project file (such as .csproj). Cannot continue.[/]");
+        stderr.MarkupLine("[red]Unable to locate any .sln or MSBuild project file (such as .csproj). Cannot continue.[/]");
         return 3;
     }
 
     var instance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(i => i.Version).FirstOrDefault();
     if (instance is null)
     {
-        stderr.WriteLine("[red]Unable to locate MSBuild. Cannot continue.[/]");
+        stderr.MarkupLine("[red]Unable to locate MSBuild. Cannot continue.[/]");
         return 4;
     }
 
@@ -107,7 +107,7 @@ async Task<int> RunAsync(string filePath, int? maxCount, bool noWarn)
         results = results.Take(maxCount.Value);
 
     foreach ((string name, int count) in results)
-        AnsiConsole.MarkupLineInterpolated($"[blue]{count,-6}[/] {name}");
+        stderr.MarkupLineInterpolated($"[blue]{count,-6}[/] {name}");
 
     return 0;
 }
