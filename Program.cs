@@ -39,7 +39,7 @@ async Task<int> RunAsync(string filePath, int? maxCount, bool noWarn)
     var instance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(i => i.Version).FirstOrDefault();
     if (instance is null)
     {
-        stderr.WriteLine("[red]Unable to locate MSBuild. Cannot continue.[/]");
+        stderr.MarkupLine("[red]Unable to locate MSBuild. Cannot continue.[/]");
         return 2;
     }
 
@@ -52,7 +52,7 @@ async Task<int> RunAsync(string filePath, int? maxCount, bool noWarn)
     if (!noWarn)
         workspace.WorkspaceFailed += (o, e) => errors.Add(e.Diagnostic.Message);
 
-    var status = AnsiConsole.Status().Spinner(Spinner.Known.Default);
+    var status = stderr.Status().Spinner(Spinner.Known.Default);
 
     await status.StartAsync(
         $"Loading {Path.GetFileName(filePath)}",
@@ -86,7 +86,7 @@ async Task<int> RunAsync(string filePath, int? maxCount, bool noWarn)
             }));
 
     if (hasWarnings)
-        AnsiConsole.WriteLine();
+        stderr.WriteLine();
 
     IEnumerable<KeyValuePair<string, int>>? results = collector.Usings.OrderByDescending(pair => pair.Value).ThenBy(pair => pair.Key);
 
@@ -94,7 +94,7 @@ async Task<int> RunAsync(string filePath, int? maxCount, bool noWarn)
         results = results.Take(maxCount.Value);
 
     foreach ((string name, int count) in results)
-        AnsiConsole.MarkupLineInterpolated($"[blue]{count,-6}[/] {name}");
+        stderr.MarkupLineInterpolated($"[blue]{count,-6}[/] {name}");
 
     return 0;
 }
@@ -105,7 +105,7 @@ IEnumerable<Document> EnumerateDocuments(MSBuildWorkspace workspace)
     {
         if (project.Language != "C#")
         {
-            AnsiConsole.MarkupLineInterpolated($"[yellow]Skipping non-C# project: {project.FilePath}[/]");
+            stderr.MarkupLineInterpolated($"[yellow]Skipping non-C# project: {project.FilePath}[/]");
             hasWarnings = true;
             continue;
         }
