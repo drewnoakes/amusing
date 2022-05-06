@@ -52,7 +52,7 @@ async Task<int> RunAsync(string filePath, int? maxCount, bool noWarn)
     if (!noWarn)
         workspace.WorkspaceFailed += (o, e) => errors.Add(e.Diagnostic.Message);
 
-    var status = stderr.Status().Spinner(Spinner.Known.Default);
+    var status = AnsiConsole.Status().Spinner(Spinner.Known.Default);
 
     await status.StartAsync(
         $"Loading {Path.GetFileName(filePath)}",
@@ -86,7 +86,7 @@ async Task<int> RunAsync(string filePath, int? maxCount, bool noWarn)
             }));
 
     if (hasWarnings)
-        stderr.WriteLine();
+        AnsiConsole.WriteLine();
 
     IEnumerable<KeyValuePair<string, int>>? results = collector.Usings.OrderByDescending(pair => pair.Value).ThenBy(pair => pair.Key);
 
@@ -94,7 +94,7 @@ async Task<int> RunAsync(string filePath, int? maxCount, bool noWarn)
         results = results.Take(maxCount.Value);
 
     foreach ((string name, int count) in results)
-        stderr.MarkupLineInterpolated($"[blue]{count,-6}[/] {name}");
+        AnsiConsole.MarkupLineInterpolated($"[blue]{count,-6}[/] {name}");
 
     return 0;
 }
@@ -105,7 +105,7 @@ IEnumerable<Document> EnumerateDocuments(MSBuildWorkspace workspace)
     {
         if (project.Language != "C#")
         {
-            stderr.MarkupLineInterpolated($"[yellow]Skipping non-C# project: {project.FilePath}[/]");
+            AnsiConsole.MarkupLineInterpolated($"[yellow]Skipping non-C# project: {project.FilePath}[/]");
             hasWarnings = true;
             continue;
         }
