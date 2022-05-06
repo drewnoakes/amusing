@@ -32,7 +32,7 @@ async Task<int> RunAsync(string filePath, int? maxCount, bool noWarn)
 {
     if (!File.Exists(filePath))
     {
-        stderr.MarkupLine("[red]File or folder do not exist. Cannot continue.[/]");
+        stderr.MarkupLine("[red]File does not exist. Cannot continue.[/]");
         return 1;
     }
 
