@@ -30,12 +30,17 @@ return await rootCommand.InvokeAsync(args);
 
 async Task<int> RunAsync(string filePath, int? maxCount, bool noWarn)
 {
-    var instance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(i => i.Version).FirstOrDefault();
+    if (!File.Exists(filePath))
+    {
+        stderr.MarkupLine("[red]File does not exist. Cannot continue.[/]");
+        return 1;
+    }
 
+    var instance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(i => i.Version).FirstOrDefault();
     if (instance is null)
     {
         stderr.WriteLine("[red]Unable to locate MSBuild. Cannot continue.[/]");
-        return 1;
+        return 2;
     }
 
     MSBuildLocator.RegisterInstance(instance);
