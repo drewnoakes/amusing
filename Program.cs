@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.MSBuild;
 using Spectre.Console;
+using System.Collections.Concurrent;
 
 var stderr = AnsiConsole.Create(new AnsiConsoleSettings { Out = new AnsiConsoleOutput(Console.Error) });
 
@@ -119,17 +120,12 @@ IEnumerable<Document> EnumerateDocuments(MSBuildWorkspace workspace)
 
 class UsingCollector : CSharpSyntaxWalker
 {
-    public Dictionary<string, int> Usings { get; } = new();
+    public ConcurrentDictionary<string, int> Usings { get; } = new();
 
     public override void VisitUsingDirective(UsingDirectiveSyntax node)
     {
         string name = node.Name.ToString();
-
-        lock (Usings)
-        {
-            Usings.TryGetValue(name, out int count);
-
-            Usings[name] = count + 1;
-        }
+        Usings.TryGetValue(name, out int count);
+        Usings[name] = count + 1;
     }
 }
