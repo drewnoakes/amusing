@@ -39,7 +39,7 @@ async Task<int> RunAsync(string filePath, int? maxCount, bool noWarn)
     var instance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(i => i.Version).FirstOrDefault();
     if (instance is null)
     {
-        stderr.WriteLine("[red]Unable to locate MSBuild. Cannot continue.[/]");
+        stderr.MarkupLine("[red]Unable to locate MSBuild. Cannot continue.[/]");
         return 2;
     }
 
