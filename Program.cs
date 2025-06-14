@@ -128,6 +128,9 @@ class UsingCollector : CSharpSyntaxWalker
 
     public override void VisitUsingDirective(UsingDirectiveSyntax node)
     {
+        if (node.Name is null)
+            return;
+
         string name = node.Name.ToString();
 
         lock (Usings)
