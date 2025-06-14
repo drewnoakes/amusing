@@ -131,7 +131,7 @@ IEnumerable<Document> EnumerateDocuments(MSBuildWorkspace workspace)
 
 class UsingCollector : CSharpSyntaxWalker
 {
-    public Dictionary<string, int> Usings { get; } = new();
+    public Dictionary<string, int> Usings { get; } = new(StringComparer.Ordinal);
 
     public override void VisitUsingDirective(UsingDirectiveSyntax node)
     {
