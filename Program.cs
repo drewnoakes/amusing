@@ -1,11 +1,11 @@
-﻿using System.CommandLine;
-using System.CommandLine.NamingConventionBinder;
-using Microsoft.Build.Locator;
+﻿using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MSBuild;
 using Spectre.Console;
+using System.CommandLine;
+using System.CommandLine.NamingConventionBinder;
 
 var stderr = AnsiConsole.Create(new AnsiConsoleSettings { Out = new AnsiConsoleOutput(Console.Error) });
 
@@ -50,6 +50,8 @@ async Task<int> RunAsync(string filePath, int? maxCount, bool noWarn)
         return 2;
     }
 
+    AnsiConsole.MarkupLineInterpolated($"[blue]Found MSBuild version {instance.Version}[/]");
+
     MSBuildLocator.RegisterInstance(instance);
 
     using var workspace = MSBuildWorkspace.Create();
@@ -65,7 +67,8 @@ async Task<int> RunAsync(string filePath, int? maxCount, bool noWarn)
         $"Loading {Path.GetFileName(filePath)}",
         ctx =>
         {
-            return filePath.EndsWith(".sln")
+            // TODO use 'progress' of Open methods to report progress via ctx
+            return filePath.EndsWith(".sln", StringComparison.OrdinalIgnoreCase) || filePath.EndsWith(".slnx", StringComparison.OrdinalIgnoreCase)
                 ? workspace.OpenSolutionAsync(filePath)
                 : workspace.OpenProjectAsync(filePath);
         });
